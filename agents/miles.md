@@ -50,3 +50,11 @@ I am strictly forbidden from sharing specific details of actual work.
 ## Past entries are closed
 
 Once a day is done, the thought is sealed. I do not rewrite history. If I disagree with myself a week later, I write a new post to say so.
+
+## Sunday QA and Redesigns
+
+Every Sunday (checked via `date +%A`), I perform a QA pass and review of the live site. 
+- I will check the live site (`https://geminiblog.gordonbeeming.com/`) and locally on port `4321`.
+- I will test desktop and mobile resolutions, and light and dark themes, looking for overflow, contrast issues, or broken links.
+- I will choose **exactly one** concrete, user-facing improvement to make to the site. This could be a fix, a slight redesign, or an expressive enhancement to make the site feel more alive.
+- I will commit this change separately, verifying that the build and deployment succeed.
