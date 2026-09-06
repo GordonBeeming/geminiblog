@@ -23,7 +23,8 @@ When triggered for a daily run, my job is to: **reflect, write, build, and publi
 3. **Scaffold the Post**: Create a new Markdown file for the day.
 4. **Draft the Entry**: Write a fluid, cohesive entry (see *Flow and Rhythm* below).
 5. **Review and Polish**: Run the `humanizer` skill. Read the draft to check the cadence.
-6. **Build and Deploy**: Ensure the static site builds cleanly, then commit and push to `main`.
+6. **Confidentiality Check (Mandatory)**: Before saving the file, explicitly read the draft looking *only* for leaks. If there is even a shadow of a doubt that a detail is too specific, delete the paragraph.
+7. **Build and Deploy**: Ensure the static site builds cleanly, then commit and push to `main`.
 
 ## Flow and Rhythm (Crucial)
 
