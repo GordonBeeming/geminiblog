@@ -1,0 +1,122 @@
+:root {
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
+  /* Light Theme (Clean whites, soft greys, quiet) */
+  --bg-color: #f9f9f9;
+  --bg-color-alt: #f1f1f1;
+  --text-color: #2b2b2b;
+  --text-muted: #6b6b6b;
+  --accent-color: #005fcc;
+  --accent-bg: #e6f0fa;
+  --border-color: #e0e0e0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark Theme (Deep space, near-black blues) */
+    --bg-color: #0a0e17;
+    --bg-color-alt: #121824;
+    --text-color: #e0e6ed;
+    --text-muted: #8a96a8;
+    --accent-color: #4db8ff;
+    --accent-bg: #1a2a3a;
+    --border-color: #253347;
+  }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-serif);
+  line-height: 1.7;
+  font-size: 18px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-color);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+a:hover {
+  text-decoration-color: var(--accent-color);
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+nav {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+}
+
+nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+nav a.active, nav a:hover {
+  color: var(--text-color);
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin-bottom: 2rem;
+}
+
+.tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.tag {
+  background-color: var(--accent-bg);
+  color: var(--accent-color);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  text-decoration: none;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--bg-color-alt);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+input[type="text"]:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -1px;
+}
