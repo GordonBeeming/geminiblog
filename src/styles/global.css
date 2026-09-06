@@ -3,30 +3,28 @@
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-serif: "Merriweather", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-  /* Light Theme */
-  --bg-color: #fafafc;
-  --bg-color-alt: #ffffff;
-  --text-color: #1c1d21;
-  --text-muted: #6e7278;
-  --accent-color: #eab308; /* A warm, golden spark */
-  --accent-glow: rgba(234, 179, 8, 0.2);
-  --accent-bg: #fefce8;
-  --border-color: #e5e7eb;
-  --grid-color: rgba(0,0,0,0.03);
+  /* Gemini/Antigravity Light Theme */
+  --bg-color: #ffffff;
+  --bg-color-alt: #f8f9fa;
+  --text-color: #202124;
+  --text-muted: #5f6368;
+  --accent-blue: #1a73e8;
+  --accent-purple: #9333ea;
+  --border-color: #e8eaed;
+  --grid-color: rgba(26, 115, 232, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark Theme */
-    --bg-color: #050505;
-    --bg-color-alt: #0a0a0a;
-    --text-color: #e2e8f0;
-    --text-muted: #64748b;
-    --accent-color: #fbbf24; /* Amber/gold */
-    --accent-glow: rgba(251, 191, 36, 0.15);
-    --accent-bg: #1a1500;
-    --border-color: #1f1f1f;
-    --grid-color: rgba(255,255,255,0.02);
+    /* Gemini/Antigravity Dark Theme */
+    --bg-color: #000000;
+    --bg-color-alt: #0a0a0c;
+    --text-color: #e8eaed;
+    --text-muted: #9aa0a6;
+    --accent-blue: #8ab4f8;
+    --accent-purple: #c084fc;
+    --border-color: #202124;
+    --grid-color: rgba(138, 180, 248, 0.05);
   }
 }
 
@@ -40,23 +38,25 @@ html, body {
   font-size: 19px;
   transition: background-color 0.4s ease, color 0.4s ease;
   background-image: 
+    radial-gradient(circle at 50% 0%, rgba(192, 132, 252, 0.05) 0%, transparent 50%),
     linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: 100% 100%, 40px 40px, 40px 40px;
   background-position: center top;
 }
 
-/* The Momentum Line - Miles' signature */
+/* The Antigravity Beam */
 .momentum-line {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-blue));
   background-size: 200% 100%;
-  animation: momentum 6s ease-in-out infinite;
+  animation: momentum 4s linear infinite;
   z-index: 100;
+  box-shadow: 0 0 15px var(--accent-purple);
 }
 
 @keyframes momentum {
@@ -81,19 +81,21 @@ html, body {
 }
 
 .mark {
-  color: var(--accent-color);
   font-size: 1.5rem;
-  animation: pulse 4s ease-in-out infinite;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: float 6s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.5; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 12px var(--accent-glow); }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
 .site-title {
-  font-weight: 700;
-  font-size: 1.2rem;
+  font-weight: 800;
+  font-size: 1.4rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-color);
@@ -103,7 +105,7 @@ nav {
   display: flex;
   gap: 2rem;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -115,8 +117,9 @@ nav a {
 }
 
 nav a.active, nav a:hover {
-  color: var(--text-color);
-  text-shadow: 0 0 8px var(--accent-glow);
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -141,16 +144,15 @@ h2 {
 }
 
 a {
-  color: var(--accent-color);
+  color: var(--accent-blue);
   text-decoration: underline;
   text-decoration-color: transparent;
   text-underline-offset: 6px;
-  transition: text-decoration-color 0.2s ease, text-shadow 0.2s ease;
+  transition: text-decoration-color 0.2s ease;
 }
 
 a:hover {
-  text-decoration-color: var(--accent-color);
-  text-shadow: 0 0 12px var(--accent-glow);
+  text-decoration-color: var(--accent-purple);
 }
 
 .container {
@@ -172,22 +174,34 @@ a:hover {
 .post-item {
   background-color: var(--bg-color-alt);
   padding: 2.5rem;
-  border-radius: 4px;
+  border-radius: 12px;
   margin-bottom: 2.5rem;
   border: 1px solid var(--border-color);
-  border-left: 3px solid transparent;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-  transition: transform 0.3s ease, border-left-color 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .post-item:hover {
-  transform: translateX(4px);
-  border-left-color: var(--accent-color);
-  box-shadow: -4px 8px 30px rgba(0, 0, 0, 0.04);
+  transform: translateY(-4px);
+  border-color: var(--accent-purple);
+  box-shadow: 0 8px 30px rgba(192, 132, 252, 0.08);
 }
 
 .post-item h2 {
   margin-top: 0;
+}
+
+.post-item h2 a {
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.post-item:hover h2 a {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .tags {
@@ -198,16 +212,16 @@ a:hover {
 }
 
 .tag {
-  background-color: var(--accent-bg);
-  color: var(--accent-color);
+  background: rgba(192, 132, 252, 0.1);
+  color: var(--accent-purple);
   padding: 0.3rem 0.6rem;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-family: var(--font-mono);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.02em;
-  border: 1px solid var(--accent-glow);
+  border: 1px solid rgba(192, 132, 252, 0.2);
 }
 
 input[type="text"] {
@@ -216,8 +230,8 @@ input[type="text"] {
   background-color: var(--bg-color-alt);
   border: 1px solid var(--border-color);
   color: var(--text-color);
-  border-radius: 4px;
-  font-family: var(--font-mono);
+  border-radius: 8px;
+  font-family: var(--font-sans);
   font-size: 0.95rem;
   margin-bottom: 3rem;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
@@ -225,8 +239,8 @@ input[type="text"] {
 
 input[type="text"]:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 4px var(--accent-glow);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.15);
 }
 
 hr {
