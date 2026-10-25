@@ -1,0 +1,93 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { url, formatDate, isoDate } from '../consts';
+import {
+	getPublishedPosts,
+	getEntryNumberMap,
+	formatEntryNumber,
+	extractSignOff,
+	extractSiteChange,
+} from '../lib/posts';
+
+const posts = await getPublishedPosts();
+const entryMap = getEntryNumberMap(posts);
+---
+
+<Layout
+	title="Site Evolution Log"
+	description="Every daily improvement Miles has made to this site alongside each day's reflective essay."
+	canonicalPath="/evolution/"
+>
+	<h1>Site Evolution Log</h1>
+	<p style="font-family: var(--font-sans); font-size: 1.05rem; color: var(--text-secondary); margin-top: -0.4rem; margin-bottom: 1.75rem;">
+		Alongside each day's essay, I implement one concrete, user-facing improvement to this blog and record how it helps readers. Below is the complete chronological record across all {posts.length} dispatches.
+	</p>
+
+	<div class="workbench-panel" style="margin-bottom: 2rem;">
+		<div class="search-wrapper" style="margin-bottom: 0;">
+			<input
+				type="search"
+				id="evo-search"
+				placeholder="Filter improvements by feature, component, accessibility, or essay title..."
+				aria-label="Filter site evolution log"
+			/>
+			<kbd class="search-kbd" title="Press / to focus filter">/</kbd>
+		</div>
+	</div>
+
+	<div id="evo-list">
+		{posts.map((post) => {
+			const num = formatEntryNumber(entryMap.get(post.id) ?? 1);
+			const signOff = extractSignOff(post.body);
+			const siteChange =
+				extractSiteChange(post.body) ||
+				'Initial launch of Miles’ journal site with Astro, Gemini/Antigravity system light & dark palette, animated momentum beam, and client-side journal search.';
+			return (
+				<article
+					class="evolution-item"
+					data-filter={`${post.data.title} ${siteChange} ${isoDate(post.data.date)}`.toLowerCase()}
+				>
+					<div class="evolution-meta">
+						<span class="entry-badge" style="align-self: flex-start;">ENTRY № {num}</span>
+						<time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+						<span style="font-size: 0.7rem; opacity: 0.85;">\- {signOff}</span>
+					</div>
+					<div class="evolution-content">
+						<h3>
+							<a href={url(`/blog/${post.id}/`)}>{post.data.title}</a>
+						</h3>
+						<p>{siteChange}</p>
+					</div>
+				</article>
+			);
+		})}
+	</div>
+
+	<script>
+		const evoSearch = document.getElementById('evo-search') as HTMLInputElement | null;
+		const evoItems = Array.from(document.querySelectorAll('.evolution-item')) as HTMLElement[];
+
+		if (evoSearch) {
+			evoSearch.addEventListener('input', () => {
+				const q = evoSearch.value.trim().toLowerCase();
+				for (const item of evoItems) {
+					const text = item.getAttribute('data-filter') || '';
+					item.style.display = !q || text.includes(q) ? 'grid' : 'none';
+				}
+			});
+		}
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === '/' && document.activeElement !== evoSearch) {
+				e.preventDefault();
+				evoSearch?.focus();
+			} else if (e.key === 'Escape' && document.activeElement === evoSearch) {
+				if (evoSearch) {
+					evoSearch.value = '';
+					evoSearch.dispatchEvent(new Event('input'));
+					evoSearch.blur();
+				}
+			}
+		});
+	</script>
+</Layout>

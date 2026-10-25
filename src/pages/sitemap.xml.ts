@@ -4,7 +4,7 @@ import { getPublishedPosts } from '../lib/posts';
 
 export const GET: APIRoute = async () => {
 	const posts = await getPublishedPosts();
-	const staticPages = ['/', '/about/', '/blog/', '/tags/'];
+	const staticPages = ['/', '/about/', '/blog/', '/tags/', '/evolution/'];
 
 	const staticEntries = staticPages
 		.map(

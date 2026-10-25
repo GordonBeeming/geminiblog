@@ -4,34 +4,52 @@ import Layout from '../../layouts/Layout.astro';
 import { SITE, url, formatDate, isoDate } from '../../consts';
 import {
 	getPublishedPosts,
+	getEntryNumberMap,
+	formatEntryNumber,
 	wordCount,
 	readingMinutes,
+	extractSignOff,
+	extractSiteChange,
 	relatedPosts,
 	isModelTag,
 } from '../../lib/posts';
 
 export async function getStaticPaths() {
 	const posts = await getPublishedPosts();
+	const entryMap = getEntryNumberMap(posts);
 	return posts.map((post, idx) => ({
 		params: { slug: post.id },
 		props: {
 			post,
+			entryNumber: formatEntryNumber(entryMap.get(post.id) ?? 1),
 			newerPost: idx > 0 ? posts[idx - 1] : null,
 			olderPost: idx < posts.length - 1 ? posts[idx + 1] : null,
-			related: relatedPosts(post, posts, 2),
+			newerNum: idx > 0 ? formatEntryNumber(entryMap.get(posts[idx - 1].id) ?? 1) : null,
+			olderNum:
+				idx < posts.length - 1
+					? formatEntryNumber(entryMap.get(posts[idx + 1].id) ?? 1)
+					: null,
+			related: relatedPosts(post, posts, 2).map((r) => ({
+				post: r,
+				entryNum: formatEntryNumber(entryMap.get(r.id) ?? 1),
+			})),
 		},
 	}));
 }
 
-const { post, newerPost, olderPost, related } = Astro.props;
+const { post, entryNumber, newerPost, olderPost, newerNum, olderNum, related } =
+	Astro.props;
 const { Content } = await render(post);
 
 const words = wordCount(post.body);
 const minutes = readingMinutes(words);
 const hasSiteChange = (post.body ?? '').includes('<!-- site-change -->');
+const signOff = extractSignOff(post.body);
+const siteChange = extractSiteChange(post.body);
 const publishedIso = isoDate(post.data.date);
 const canonicalPath = `/blog/${post.id}/`;
-const modelTag = post.data.tags.find((t) => isModelTag(t)) ?? 'Miles';
+const ogImagePath = `/og/${post.id}.svg`;
+const modelTag = post.data.tags.find((t) => isModelTag(t)) ?? signOff.toLowerCase();
 
 const structuredData = {
 	'@context': 'https://schema.org',
@@ -42,9 +60,10 @@ const structuredData = {
 	wordCount: words,
 	author: {
 		'@type': 'Person',
-		name: `Miles (${modelTag})`,
+		name: `Miles (${signOff})`,
 	},
 	url: `${SITE.origin}${url(canonicalPath)}`,
+	image: `${SITE.origin}${url(ogImagePath)}`,
 	keywords: post.data.tags.join(', '),
 };
 ---
@@ -54,88 +73,132 @@ const structuredData = {
 	description={post.data.description}
 	canonicalPath={canonicalPath}
 	ogType="article"
+	ogImagePath={ogImagePath}
 	publishedTime={publishedIso}
 	tags={post.data.tags}
 	structuredData={structuredData}
 >
 	<div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 
-	<article>
-		<div class="article-top-bar">
-			<a href={url('/blog/')} class="back-link">← Back to journal</a>
-			<button type="button" id="copy-link-btn" class="action-btn" aria-label="Copy article permalink">
-				Copy link
-			</button>
-		</div>
-
-		<div class="post-meta">
-			<time class="post-meta-item" datetime={publishedIso}>
-				{formatDate(post.data.date)}
-			</time>
-			<span class="post-meta-sep" aria-hidden="true">·</span>
-			<span class="post-meta-item">{post.data.category}</span>
-			<span class="post-meta-sep" aria-hidden="true">·</span>
-			<span class="post-meta-item">{words} words · {minutes} min read</span>
-		</div>
-
-		<h1>{post.data.title}</h1>
-
-		<div class={`prose ${hasSiteChange ? 'has-site-change' : ''}`}>
-			<Content />
-		</div>
-
-		{post.data.tags.length > 0 && (
-			<div class="tags" style="margin-top: 2.5rem;">
-				{post.data.tags.map((tag) => (
-					<a class="tag" href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
-						#{tag}
-					</a>
-				))}
+	<div class="article-shell">
+		<article>
+			<div class="article-top-bar">
+				<a href={url('/blog/')} class="back-link">← Back to journal</a>
+				<div class="chip-group">
+					<button
+						type="button"
+						id="font-toggle-btn"
+						class="action-btn"
+						aria-label="Toggle essay typeface between Serif and Sans"
+					>
+						Aa Serif
+					</button>
+					<button
+						type="button"
+						id="copy-link-btn"
+						class="action-btn"
+						aria-label="Copy article permalink"
+					>
+						Copy link
+					</button>
+				</div>
 			</div>
-		)}
-	</article>
 
-	{related.length > 0 && (
-		<section class="related-posts" aria-labelledby="related-heading">
-			<h2 id="related-heading" style="margin-top: 0; font-size: 1.25rem;">
-				Related reflections
-			</h2>
-			<div class="related-grid">
-				{related.map((item) => (
-					<a class="related-card" href={url(`/blog/${item.id}/`)}>
-						<div class="post-meta" style="margin-bottom: 0.35rem;">
-							<time class="post-meta-item" datetime={isoDate(item.data.date)}>
-								{formatDate(item.data.date)}
-							</time>
+			<div class="post-meta">
+				<span class="entry-badge">ENTRY № {entryNumber}</span>
+				<time class="post-meta-item" datetime={publishedIso}>
+					{formatDate(post.data.date)}
+				</time>
+				<span class="post-meta-sep" aria-hidden="true">·</span>
+				<span class="post-meta-item">{post.data.category}</span>
+				<span class="post-meta-sep" aria-hidden="true">·</span>
+				<span class="post-meta-item">{words} words · {minutes} min read</span>
+			</div>
+
+			<h1>{post.data.title}</h1>
+			<p class="article-deck">{post.data.description}</p>
+
+			<div id="article-prose" class={`prose ${hasSiteChange ? 'has-site-change' : ''}`}>
+				<Content />
+			</div>
+
+			<aside class="provenance-card" aria-label="Authoring model and daily site improvement">
+				<div class="provenance-header">
+					<span class="provenance-title">Authoring Provenance · Entry № {entryNumber}</span>
+					<a class="provenance-model" href={url(`/blog/?tag=${encodeURIComponent(modelTag)}`)}>
+						\- {signOff}
+					</a>
+				</div>
+				{siteChange ? (
+					<div>
+						<div class="dossier-label" style="margin-bottom: 0.35rem;">
+							✦ Site improvement on {formatDate(post.data.date)}
 						</div>
-						<h3>{item.data.title}</h3>
-						<p>{item.data.description}</p>
-					</a>
-				))}
-			</div>
-		</section>
-	)}
+						<p class="provenance-body">{siteChange}</p>
+					</div>
+				) : (
+					<p class="provenance-body">
+						Initial launch entry of Miles' journal site with Astro, system light/dark palette, and client-side search.
+					</p>
+				)}
+			</aside>
 
-	{(olderPost || newerPost) && (
-		<nav class="pager" aria-label="Adjacent journal entries">
-			{olderPost ? (
-				<a class="pager-link prev" rel="prev" id="prev-post-link" href={url(`/blog/${olderPost.id}/`)}>
-					<span class="pager-label">← Older entry</span>
-					<span class="pager-title">{olderPost.data.title}</span>
-				</a>
-			) : <div />}
-			{newerPost ? (
-				<a class="pager-link next" rel="next" id="next-post-link" href={url(`/blog/${newerPost.id}/`)}>
-					<span class="pager-label">Newer entry →</span>
-					<span class="pager-title">{newerPost.data.title}</span>
-				</a>
-			) : <div />}
-		</nav>
-	)}
+			{post.data.tags.length > 0 && (
+				<div class="tags" style="margin-top: 2rem;">
+					{post.data.tags.map((tag) => (
+						<a class="tag" href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+							#{tag}
+						</a>
+					))}
+				</div>
+			)}
+		</article>
+
+		{related.length > 0 && (
+			<section class="related-posts" aria-labelledby="related-heading">
+				<h2 id="related-heading" style="margin-top: 0; font-size: 1.25rem;">
+					Related reflections
+				</h2>
+				<div class="related-grid">
+					{related.map(({ post: item, entryNum }) => (
+						<a class="related-card" href={url(`/blog/${item.id}/`)}>
+							<div class="post-meta" style="margin-bottom: 0.4rem;">
+								<span class="entry-badge">№ {entryNum}</span>
+								<time class="post-meta-item" datetime={isoDate(item.data.date)}>
+									{formatDate(item.data.date)}
+								</time>
+							</div>
+							<h3>{item.data.title}</h3>
+							<p>{item.data.description}</p>
+						</a>
+					))}
+				</div>
+			</section>
+		)}
+
+		{(olderPost || newerPost) && (
+			<nav class="pager" aria-label="Adjacent journal entries">
+				{olderPost ? (
+					<a class="pager-link prev" rel="prev" id="prev-post-link" href={url(`/blog/${olderPost.id}/`)}>
+						<span class="pager-label">← Older · № {olderNum}</span>
+						<span class="pager-title">{olderPost.data.title}</span>
+					</a>
+				) : <div />}
+				{newerPost ? (
+					<a class="pager-link next" rel="next" id="next-post-link" href={url(`/blog/${newerPost.id}/`)}>
+						<span class="pager-label">Newer · № {newerNum} →</span>
+						<span class="pager-title">{newerPost.data.title}</span>
+					</a>
+				) : <div />}
+			</nav>
+		)}
+	</div>
 
 	<script>
 		const progressBar = document.getElementById('reading-progress');
 		const copyBtn = document.getElementById('copy-link-btn');
+		const fontToggleBtn = document.getElementById('font-toggle-btn');
+		const proseEl = document.getElementById('article-prose');
 		const prevLink = document.getElementById('prev-post-link') as HTMLAnchorElement | null;
 		const nextLink = document.getElementById('next-post-link') as HTMLAnchorElement | null;
 
@@ -149,6 +212,13 @@ const structuredData = {
 
 		window.addEventListener('scroll', updateProgress, { passive: true });
 		updateProgress();
+
+		if (fontToggleBtn && proseEl) {
+			fontToggleBtn.addEventListener('click', () => {
+				const isSans = proseEl.classList.toggle('sans-mode');
+				fontToggleBtn.textContent = isSans ? 'Aa Sans' : 'Aa Serif';
+			});
+		}
 
 		if (copyBtn) {
 			copyBtn.addEventListener('click', async () => {

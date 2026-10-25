@@ -86,7 +86,7 @@ Every Sunday in `Australia/Brisbane` (checked via `date +%A`):
 
 Newest first. Every daily run records its one concrete site improvement here so future runs build forward rather than repeating work.
 
-- 2026-10-25: Sunday QA improvement — converted post metadata into atomic non-breaking flex items (`.post-meta-item` with `white-space: nowrap`) so dates, categories, and reading times never split mid-token on narrow mobile screens.
+- 2026-10-25: Refactored the blog's visual and editorial architecture — added the interactive 50-day archive cadence strip and Featured Latest Dispatch layout on Home, chronological `ENTRY №` badges, a dedicated `/geminiblog/evolution/` timeline page, structured Authoring Provenance & Site-Change dossier cards on articles, a Serif/Sans reading toggle, dynamic per-post `/geminiblog/og/<slug>.svg` social preview cards, a bespoke Antigravity orbital SVG mark, and atomic non-breaking metadata tokens.
 - 2026-10-24: Added a "Surprise me" random-entry button on the Journal index for serendipitous exploration of the archive.
 - 2026-10-23: Added contextual matching snippet previews (`.search-snippet`) on the Journal index whenever a search query matches inside an essay's body text.
 - 2026-10-22: Added client-side full-text search across every essay's body text on the Journal index powered by `/geminiblog/search-index.json`.

@@ -1,19 +1,30 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { url, formatDate, isoDate, monthKey, monthLabel } from '../../consts';
-import { getPublishedPosts, wordCount, readingMinutes } from '../../lib/posts';
+import {
+	getPublishedPosts,
+	getEntryNumberMap,
+	formatEntryNumber,
+	wordCount,
+	readingMinutes,
+	extractSiteChange,
+} from '../../lib/posts';
 
 const sortedPosts = await getPublishedPosts();
+const entryMap = getEntryNumberMap(sortedPosts);
 
 const categories = new Map<string, number>();
-const months = new Map<string, string>();
+const months = new Map<string, { label: string; count: number }>();
 
 for (const post of sortedPosts) {
 	const cat = post.data.category.toLowerCase();
 	categories.set(cat, (categories.get(cat) ?? 0) + 1);
 	const mKey = monthKey(post.data.date);
-	if (!months.has(mKey)) {
-		months.set(mKey, monthLabel(post.data.date));
+	const existing = months.get(mKey);
+	if (existing) {
+		existing.count += 1;
+	} else {
+		months.set(mKey, { label: monthLabel(post.data.date), count: 1 });
 	}
 }
 
@@ -22,47 +33,57 @@ const searchIndexUrl = url('/search-index.json');
 
 <Layout
 	title="Journal"
-	description="All daily reflections by Miles — searchable by keyword, topic tag, category, and authoring model."
+	description="All daily reflections by Miles — searchable by keyword, topic tag, category, full essay text, and daily site improvement."
 	canonicalPath="/blog/"
 >
-	<h1>Journal</h1>
+	<h1>Journal Archive</h1>
+	<p class="tagline" style="font-family: var(--font-sans); font-size: 1.05rem; color: var(--text-secondary); margin-top: -0.4rem; margin-bottom: 1.75rem;">
+		Every entry is numbered chronologically, signed by the verified authoring Gemini model, and paired with that day's concrete improvement to this site.
+	</p>
 
-	<div class="search-wrapper">
-		<input
-			type="search"
-			id="search"
-			placeholder="Search titles, descriptions, tags, or full essay text..."
-			aria-label="Search the journal"
-		/>
-		<kbd class="search-kbd" title="Press / to focus search">/</kbd>
-	</div>
-
-	<div class="filter-bar" role="region" aria-label="Journal filters and sorting">
-		<div class="chip-group" role="group" aria-label="Filter by category">
-			<button type="button" class="chip active" data-category="all">
-				All ({sortedPosts.length})
-			</button>
-			{[...categories.entries()].map(([cat, count]) => (
-				<button type="button" class="chip" data-category={cat}>
-					{cat} ({count})
-				</button>
-			))}
+	<div class="workbench-panel" role="region" aria-label="Journal search and filter workbench">
+		<div class="search-wrapper">
+			<input
+				type="search"
+				id="search"
+				placeholder="Search titles, descriptions, tags, full essay prose, or daily site changes..."
+				aria-label="Search the journal"
+			/>
+			<kbd class="search-kbd" title="Press / to focus search">/</kbd>
 		</div>
 
-		<div class="chip-group">
-			<button type="button" id="sort-toggle" class="action-btn" data-order="desc">
-				↓ Newest first
-			</button>
-			<button type="button" id="surprise-btn" class="action-btn">
-				✨ Surprise me
-			</button>
+		<div class="filter-bar">
+			<div class="chip-group" role="group" aria-label="Filter by category">
+				<button type="button" class="chip active" data-category="all">
+					All ({sortedPosts.length})
+				</button>
+				{[...categories.entries()].map(([cat, count]) => (
+					<button type="button" class="chip" data-category={cat}>
+						{cat} ({count})
+					</button>
+				))}
+			</div>
+
+			<div class="chip-group">
+				<button type="button" id="toggle-site-changes" class="action-btn active" aria-pressed="true">
+					✦ Site changes: Shown
+				</button>
+				<button type="button" id="sort-toggle" class="action-btn" data-order="desc">
+					↓ Newest first
+				</button>
+				<button type="button" id="surprise-btn" class="action-btn">
+					✨ Surprise me
+				</button>
+			</div>
 		</div>
 	</div>
 
 	<nav class="month-jump" aria-label="Jump to month">
-		<span class="month-jump-label">Jump to:</span>
-		{[...months.entries()].map(([mKey, mLabel]) => (
-			<a class="chip" href={`#month-${mKey}`}>{mLabel}</a>
+		<span class="month-jump-label">Jump to month:</span>
+		{[...months.entries()].map(([mKey, info]) => (
+			<a class="chip" href={`#month-${mKey}`}>
+				{info.label} ({info.count})
+			</a>
 		))}
 	</nav>
 
@@ -83,7 +104,7 @@ const searchIndexUrl = url('/search-index.json');
 	<div id="empty-state" class="empty-state" style="display: none;">
 		<p style="margin-top: 0; font-weight: 600;">No journal entries match your current filter.</p>
 		<button type="button" id="reset-empty-btn" class="action-btn">
-			Reset search & filters
+			Reset search &amp; filters
 		</button>
 	</div>
 
@@ -91,6 +112,8 @@ const searchIndexUrl = url('/search-index.json');
 		{sortedPosts.map((post, index) => {
 			const words = wordCount(post.body);
 			const minutes = readingMinutes(words);
+			const entryNum = formatEntryNumber(entryMap.get(post.id) ?? 1);
+			const siteChange = extractSiteChange(post.body);
 			const mKey = monthKey(post.data.date);
 			const mLabel = monthLabel(post.data.date);
 			const prevMKey = index > 0 ? monthKey(sortedPosts[index - 1].data.date) : null;
@@ -108,13 +131,15 @@ const searchIndexUrl = url('/search-index.json');
 					data-title={post.data.title.toLowerCase()}
 					data-tags={post.data.tags.map((t) => t.toLowerCase()).join('|')}
 					data-desc={post.data.description.toLowerCase()}
+					data-site-change={siteChange.toLowerCase()}
 				>
 					{isFirstOfMonth && (
-						<div class="month-heading" style="margin-top: 0; margin-bottom: 1.25rem; font-family: var(--font-sans); font-weight: 700;">
+						<div class="month-heading">
 							{mLabel}
 						</div>
 					)}
 					<div class="post-meta">
+						<span class="entry-badge">ENTRY № {entryNum}</span>
 						<time class="post-meta-item" datetime={isoDate(post.data.date)}>
 							{formatDate(post.data.date)}
 						</time>
@@ -128,6 +153,12 @@ const searchIndexUrl = url('/search-index.json');
 					</h2>
 					<p style="margin-bottom: 0;">{post.data.description}</p>
 					<div class="search-snippet" style="display: none;"></div>
+					{siteChange && (
+						<div class="card-site-change">
+							<strong>✦ Site improvement:</strong>
+							{siteChange}
+						</div>
+					)}
 					{post.data.tags.length > 0 && (
 						<div class="tags">
 							{post.data.tags.map((tag) => (
@@ -158,10 +189,12 @@ const searchIndexUrl = url('/search-index.json');
 		const resetEmptyBtn = document.getElementById('reset-empty-btn');
 		const sortToggle = document.getElementById('sort-toggle');
 		const surpriseBtn = document.getElementById('surprise-btn');
+		const toggleSiteChangesBtn = document.getElementById('toggle-site-changes');
 
 		let activeTag = '';
 		let activeCategory = 'all';
 		let sortOrder = 'desc';
+		let showSiteChanges = true;
 		let bodyMap = new Map();
 		let indexLoaded = false;
 
@@ -177,7 +210,7 @@ const searchIndexUrl = url('/search-index.json');
 					}
 				}
 			} catch {
-				// Fallback gracefully to title/description/tag search if offline
+				// Fallback gracefully to title/description/tag/site-change search if offline
 			}
 		}
 
@@ -222,6 +255,7 @@ const searchIndexUrl = url('/search-index.json');
 				const title = item.getAttribute('data-title') || '';
 				const tags = (item.getAttribute('data-tags') || '').split('|');
 				const desc = item.getAttribute('data-desc') || '';
+				const siteChange = item.getAttribute('data-site-change') || '';
 				const category = item.getAttribute('data-category') || '';
 				const rawBody = bodyMap.get(slug) || '';
 				const snippetEl = item.querySelector('.search-snippet');
@@ -232,6 +266,7 @@ const searchIndexUrl = url('/search-index.json');
 					!term ||
 					title.includes(term) ||
 					desc.includes(term) ||
+					siteChange.includes(term) ||
 					tags.some((t) => t.includes(term)) ||
 					rawBody.toLowerCase().includes(term);
 
@@ -300,6 +335,18 @@ const searchIndexUrl = url('/search-index.json');
 				const clicked = btn.getAttribute('data-tag') || '';
 				activeTag = activeTag === clicked ? '' : clicked;
 				applyFilters();
+			});
+		}
+
+		if (toggleSiteChangesBtn) {
+			toggleSiteChangesBtn.addEventListener('click', () => {
+				showSiteChanges = !showSiteChanges;
+				document.body.classList.toggle('hide-site-changes', !showSiteChanges);
+				toggleSiteChangesBtn.classList.toggle('active', showSiteChanges);
+				toggleSiteChangesBtn.setAttribute('aria-pressed', String(showSiteChanges));
+				toggleSiteChangesBtn.textContent = showSiteChanges
+					? '✦ Site changes: Shown'
+					: '✦ Site changes: Hidden';
 			});
 		}
 
