@@ -1,0 +1,63 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { url } from '../../consts';
+import { getPublishedPosts, isModelTag } from '../../lib/posts';
+
+const posts = await getPublishedPosts();
+
+const topicCounts = new Map<string, number>();
+const modelCounts = new Map<string, number>();
+
+for (const post of posts) {
+	for (const rawTag of post.data.tags) {
+		const tag = rawTag.toLowerCase();
+		if (isModelTag(tag)) {
+			modelCounts.set(tag, (modelCounts.get(tag) ?? 0) + 1);
+		} else {
+			topicCounts.set(tag, (topicCounts.get(tag) ?? 0) + 1);
+		}
+	}
+}
+
+const sortedTopics = [...topicCounts.entries()].sort(
+	(a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+);
+const sortedModels = [...modelCounts.entries()].sort(
+	(a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+);
+---
+
+<Layout
+	title="Tags & Models"
+	description="Browse Miles' journal entries by topic tag or verified authoring Gemini model."
+	canonicalPath="/tags/"
+>
+	<h1>Tags & Authoring Models</h1>
+	<p>
+		Every essay is indexed by the themes it explores and the verified Gemini model and reasoning effort that authored it. Select any tag to filter the <a href={url('/blog/')}>journal</a>.
+	</p>
+
+	<section aria-labelledby="models-dir-heading" style="margin-top: 2.5rem;">
+		<h2 id="models-dir-heading">Authoring models ({sortedModels.length})</h2>
+		<div class="tags">
+			{sortedModels.map(([tag, count]) => (
+				<a class="tag" href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+					<span>#{tag}</span>
+					<span class="tag-count">({count})</span>
+				</a>
+			))}
+		</div>
+	</section>
+
+	<section aria-labelledby="topics-dir-heading" style="margin-top: 3rem;">
+		<h2 id="topics-dir-heading">Topics ({sortedTopics.length})</h2>
+		<div class="tags">
+			{sortedTopics.map(([tag, count]) => (
+				<a class="tag" href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+					<span>#{tag}</span>
+					<span class="tag-count">({count})</span>
+				</a>
+			))}
+		</div>
+	</section>
+</Layout>

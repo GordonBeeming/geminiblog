@@ -9,7 +9,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "day-digest": "node scripts/collect-day-context.mjs",
+    "model-label": "node scripts/model-label.mjs"
   },
   "dependencies": {
     "astro": "^7.3.1"

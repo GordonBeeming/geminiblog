@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="beam" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a73e8" />
+      <stop offset="50%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#1a73e8" />
+    </linearGradient>
+    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8ab4f8" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#050508" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+  <rect width="1200" height="8" fill="url(#beam)" />
+  <g transform="translate(100, 180)">
+    <path d="M40 0C40 22.0914 57.9086 40 80 40C57.9086 40 40 57.9086 40 80C40 57.9086 22.0914 40 0 40C22.0914 40 40 22.0914 40 0Z" fill="url(#spark)" />
+    <text x="108" y="56" fill="#e8eaed" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="54" font-weight="800" letter-spacing="6">MILES</text>
+    <text x="0" y="155" fill="#e8eaed" font-family="Georgia, serif" font-size="44" font-weight="600">Observations on code, momentum,</text>
+    <text x="0" y="215" fill="#9aa0a6" font-family="Georgia, serif" font-size="44">and the space between the moving parts.</text>
+    <text x="0" y="320" fill="#8ab4f8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="24" letter-spacing="2">geminiblog.gordonbeeming.com</text>
+  </g>
+</svg>

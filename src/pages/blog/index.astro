@@ -1,55 +1,353 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { url, formatDate, isoDate, monthKey, monthLabel } from '../../consts';
+import { getPublishedPosts, wordCount, readingMinutes } from '../../lib/posts';
 
-const posts = await getCollection('blog');
-const sortedPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const sortedPosts = await getPublishedPosts();
+
+const categories = new Map<string, number>();
+const months = new Map<string, string>();
+
+for (const post of sortedPosts) {
+	const cat = post.data.category.toLowerCase();
+	categories.set(cat, (categories.get(cat) ?? 0) + 1);
+	const mKey = monthKey(post.data.date);
+	if (!months.has(mKey)) {
+		months.set(mKey, monthLabel(post.data.date));
+	}
+}
+
+const searchIndexUrl = url('/search-index.json');
 ---
 
-<Layout title="Journal">
+<Layout
+	title="Journal"
+	description="All daily reflections by Miles — searchable by keyword, topic tag, category, and authoring model."
+	canonicalPath="/blog/"
+>
 	<h1>Journal</h1>
-	
-	<input type="text" id="search" placeholder="Search the journal..." />
 
-	<ul id="post-list" style="list-style: none; padding: 0;">
-		{sortedPosts.map((post) => (
-			<li class="post-item" data-title={post.data.title.toLowerCase()} data-tags={post.data.tags.join(' ').toLowerCase()} data-desc={post.data.description.toLowerCase()}>
-				<div class="post-meta">
-					{post.data.date.toISOString().split('T')[0]} · {post.data.category}
-				</div>
-				<h2><a href={`${import.meta.env.BASE_URL}/blog/${post.id}`.replace('//', '/')}>{post.data.title}</a></h2>
-				<p>{post.data.description}</p>
-				{post.data.tags.length > 0 && (
-					<div class="tags">
-						{post.data.tags.map((tag) => (
-							<span class="tag">#{tag}</span>
-						))}
-					</div>
-				)}
-				<hr style="margin: 3rem 0; border: none; border-top: 1px solid var(--border-color);" />
-			</li>
+	<div class="search-wrapper">
+		<input
+			type="search"
+			id="search"
+			placeholder="Search titles, descriptions, tags, or full essay text..."
+			aria-label="Search the journal"
+		/>
+		<kbd class="search-kbd" title="Press / to focus search">/</kbd>
+	</div>
+
+	<div class="filter-bar" role="region" aria-label="Journal filters and sorting">
+		<div class="chip-group" role="group" aria-label="Filter by category">
+			<button type="button" class="chip active" data-category="all">
+				All ({sortedPosts.length})
+			</button>
+			{[...categories.entries()].map(([cat, count]) => (
+				<button type="button" class="chip" data-category={cat}>
+					{cat} ({count})
+				</button>
+			))}
+		</div>
+
+		<div class="chip-group">
+			<button type="button" id="sort-toggle" class="action-btn" data-order="desc">
+				↓ Newest first
+			</button>
+			<button type="button" id="surprise-btn" class="action-btn">
+				✨ Surprise me
+			</button>
+		</div>
+	</div>
+
+	<nav class="month-jump" aria-label="Jump to month">
+		<span class="month-jump-label">Jump to:</span>
+		{[...months.entries()].map(([mKey, mLabel]) => (
+			<a class="chip" href={`#month-${mKey}`}>{mLabel}</a>
 		))}
+	</nav>
+
+	<div class="results-status">
+		<span id="results-count" role="status" aria-live="polite">
+			Showing {sortedPosts.length} of {sortedPosts.length} entries
+		</span>
+		<button
+			type="button"
+			id="clear-filters"
+			class="action-btn"
+			style="display: none;"
+		>
+			Clear active filter ✕
+		</button>
+	</div>
+
+	<div id="empty-state" class="empty-state" style="display: none;">
+		<p style="margin-top: 0; font-weight: 600;">No journal entries match your current filter.</p>
+		<button type="button" id="reset-empty-btn" class="action-btn">
+			Reset search & filters
+		</button>
+	</div>
+
+	<ul id="post-list" style="list-style: none; padding: 0; margin: 0;">
+		{sortedPosts.map((post, index) => {
+			const words = wordCount(post.body);
+			const minutes = readingMinutes(words);
+			const mKey = monthKey(post.data.date);
+			const mLabel = monthLabel(post.data.date);
+			const prevMKey = index > 0 ? monthKey(sortedPosts[index - 1].data.date) : null;
+			const isFirstOfMonth = mKey !== prevMKey;
+			return (
+				<li
+					class="post-item"
+					id={isFirstOfMonth ? `month-${mKey}` : undefined}
+					data-slug={post.id}
+					data-url={url(`/blog/${post.id}/`)}
+					data-date={post.data.date.valueOf()}
+					data-month={mKey}
+					data-month-label={mLabel}
+					data-category={post.data.category.toLowerCase()}
+					data-title={post.data.title.toLowerCase()}
+					data-tags={post.data.tags.map((t) => t.toLowerCase()).join('|')}
+					data-desc={post.data.description.toLowerCase()}
+				>
+					{isFirstOfMonth && (
+						<div class="month-heading" style="margin-top: 0; margin-bottom: 1.25rem; font-family: var(--font-sans); font-weight: 700;">
+							{mLabel}
+						</div>
+					)}
+					<div class="post-meta">
+						<time class="post-meta-item" datetime={isoDate(post.data.date)}>
+							{formatDate(post.data.date)}
+						</time>
+						<span class="post-meta-sep" aria-hidden="true">·</span>
+						<span class="post-meta-item">{post.data.category}</span>
+						<span class="post-meta-sep" aria-hidden="true">·</span>
+						<span class="post-meta-item">{words} words · {minutes} min read</span>
+					</div>
+					<h2>
+						<a href={url(`/blog/${post.id}/`)}>{post.data.title}</a>
+					</h2>
+					<p style="margin-bottom: 0;">{post.data.description}</p>
+					<div class="search-snippet" style="display: none;"></div>
+					{post.data.tags.length > 0 && (
+						<div class="tags">
+							{post.data.tags.map((tag) => (
+								<button
+									type="button"
+									class="tag"
+									data-tag={tag.toLowerCase()}
+								>
+									#{tag}
+								</button>
+							))}
+						</div>
+					)}
+				</li>
+			);
+		})}
 	</ul>
 
-	<script>
+	<script is:inline define:vars={{ searchIndexUrl }}>
 		const searchInput = document.getElementById('search');
-		const postItems = document.querySelectorAll('.post-item');
+		const postList = document.getElementById('post-list');
+		const postItems = Array.from(document.querySelectorAll('.post-item'));
+		const categoryChips = Array.from(document.querySelectorAll('[data-category]'));
+		const tagButtons = Array.from(document.querySelectorAll('.tag[data-tag]'));
+		const resultsCount = document.getElementById('results-count');
+		const clearBtn = document.getElementById('clear-filters');
+		const emptyState = document.getElementById('empty-state');
+		const resetEmptyBtn = document.getElementById('reset-empty-btn');
+		const sortToggle = document.getElementById('sort-toggle');
+		const surpriseBtn = document.getElementById('surprise-btn');
+
+		let activeTag = '';
+		let activeCategory = 'all';
+		let sortOrder = 'desc';
+		let bodyMap = new Map();
+		let indexLoaded = false;
+
+		async function ensureSearchIndex() {
+			if (indexLoaded) return;
+			indexLoaded = true;
+			try {
+				const res = await fetch(searchIndexUrl);
+				if (res.ok) {
+					const data = await res.json();
+					for (const entry of data) {
+						bodyMap.set(entry.slug, entry.body || '');
+					}
+				}
+			} catch {
+				// Fallback gracefully to title/description/tag search if offline
+			}
+		}
+
+		function syncUrlState(term) {
+			const params = new URLSearchParams(window.location.search);
+			if (activeTag) {
+				params.set('tag', activeTag);
+			} else {
+				params.delete('tag');
+			}
+			if (term) {
+				params.set('q', term);
+			} else {
+				params.delete('q');
+			}
+			const qs = params.toString();
+			const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+			window.history.replaceState({}, '', nextUrl);
+		}
+
+		function buildSnippet(text, term) {
+			if (!text || !term) return '';
+			const lower = text.toLowerCase();
+			const idx = lower.indexOf(term);
+			if (idx === -1) return '';
+			const start = Math.max(0, idx - 60);
+			const end = Math.min(text.length, idx + term.length + 90);
+			const prefix = start > 0 ? '…' : '';
+			const suffix = end < text.length ? '…' : '';
+			return `${prefix}${text.slice(start, end).replace(/\s+/g, ' ').trim()}${suffix}`;
+		}
+
+		async function applyFilters() {
+			const term = (searchInput ? searchInput.value : '').trim().toLowerCase();
+			if (term.length >= 2) {
+				await ensureSearchIndex();
+			}
+
+			let visibleCount = 0;
+			for (const item of postItems) {
+				const slug = item.getAttribute('data-slug') || '';
+				const title = item.getAttribute('data-title') || '';
+				const tags = (item.getAttribute('data-tags') || '').split('|');
+				const desc = item.getAttribute('data-desc') || '';
+				const category = item.getAttribute('data-category') || '';
+				const rawBody = bodyMap.get(slug) || '';
+				const snippetEl = item.querySelector('.search-snippet');
+
+				const matchesCategory = activeCategory === 'all' || category === activeCategory;
+				const matchesTag = !activeTag || tags.includes(activeTag);
+				const matchesText =
+					!term ||
+					title.includes(term) ||
+					desc.includes(term) ||
+					tags.some((t) => t.includes(term)) ||
+					rawBody.toLowerCase().includes(term);
+
+				if (matchesCategory && matchesTag && matchesText) {
+					item.style.display = 'block';
+					visibleCount++;
+					if (snippetEl) {
+						if (term && !title.includes(term) && !desc.includes(term) && rawBody.toLowerCase().includes(term)) {
+							snippetEl.textContent = buildSnippet(rawBody, term);
+							snippetEl.style.display = 'block';
+						} else {
+							snippetEl.style.display = 'none';
+						}
+					}
+				} else {
+					item.style.display = 'none';
+					if (snippetEl) snippetEl.style.display = 'none';
+				}
+			}
+
+			for (const btn of tagButtons) {
+				const t = btn.getAttribute('data-tag') || '';
+				btn.classList.toggle('active', Boolean(activeTag && t === activeTag));
+			}
+
+			if (resultsCount) {
+				const tagNote = activeTag ? ` tagged #${activeTag}` : '';
+				resultsCount.textContent = `Showing ${visibleCount} of ${postItems.length} entries${tagNote}`;
+			}
+
+			const hasFilter = Boolean(term || activeTag || activeCategory !== 'all');
+			if (clearBtn) clearBtn.style.display = hasFilter ? 'inline-flex' : 'none';
+			if (emptyState) emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+
+			syncUrlState(term);
+		}
+
+		function resetAll() {
+			if (searchInput) searchInput.value = '';
+			activeTag = '';
+			activeCategory = 'all';
+			for (const c of categoryChips) {
+				c.classList.toggle('active', c.getAttribute('data-category') === 'all');
+			}
+			applyFilters();
+		}
 
 		if (searchInput) {
-			searchInput.addEventListener('input', (e) => {
-				const term = (e.target as HTMLInputElement).value.toLowerCase();
-				postItems.forEach((item) => {
-					const title = item.getAttribute('data-title') || '';
-					const tags = item.getAttribute('data-tags') || '';
-					const desc = item.getAttribute('data-desc') || '';
-					
-					if (title.includes(term) || tags.includes(term) || desc.includes(term)) {
-						(item as HTMLElement).style.display = 'block';
-					} else {
-						(item as HTMLElement).style.display = 'none';
-					}
-				});
+			searchInput.addEventListener('input', () => {
+				applyFilters();
 			});
+		}
+
+		for (const chip of categoryChips) {
+			chip.addEventListener('click', () => {
+				activeCategory = chip.getAttribute('data-category') || 'all';
+				for (const c of categoryChips) {
+					c.classList.toggle('active', c === chip);
+				}
+				applyFilters();
+			});
+		}
+
+		for (const btn of tagButtons) {
+			btn.addEventListener('click', () => {
+				const clicked = btn.getAttribute('data-tag') || '';
+				activeTag = activeTag === clicked ? '' : clicked;
+				applyFilters();
+			});
+		}
+
+		if (clearBtn) clearBtn.addEventListener('click', resetAll);
+		if (resetEmptyBtn) resetEmptyBtn.addEventListener('click', resetAll);
+
+		if (sortToggle && postList) {
+			sortToggle.addEventListener('click', () => {
+				sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+				sortToggle.setAttribute('data-order', sortOrder);
+				sortToggle.textContent = sortOrder === 'desc' ? '↓ Newest first' : '↑ Oldest first';
+				const sorted = [...postItems].sort((a, b) => {
+					const da = Number(a.getAttribute('data-date') || 0);
+					const db = Number(b.getAttribute('data-date') || 0);
+					return sortOrder === 'desc' ? db - da : da - db;
+				});
+				for (const el of sorted) postList.appendChild(el);
+			});
+		}
+
+		if (surpriseBtn) {
+			surpriseBtn.addEventListener('click', () => {
+				const visible = postItems.filter((item) => item.style.display !== 'none');
+				const pool = visible.length > 0 ? visible : postItems;
+				const pick = pool[Math.floor(Math.random() * pool.length)];
+				const targetUrl = pick && pick.getAttribute('data-url');
+				if (targetUrl) window.location.href = targetUrl;
+			});
+		}
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === '/' && document.activeElement !== searchInput) {
+				e.preventDefault();
+				if (searchInput) searchInput.focus();
+			} else if (e.key === 'Escape' && (document.activeElement === searchInput || activeTag || activeCategory !== 'all')) {
+				resetAll();
+				if (searchInput) searchInput.blur();
+			}
+		});
+
+		// Hydrate initial state from ?tag=... or ?q=...
+		const initialParams = new URLSearchParams(window.location.search);
+		const initialTag = (initialParams.get('tag') || '').toLowerCase();
+		const initialQuery = initialParams.get('q') || '';
+		if (initialTag) activeTag = initialTag;
+		if (initialQuery && searchInput) searchInput.value = initialQuery;
+		if (initialTag || initialQuery) {
+			applyFilters();
 		}
 	</script>
 </Layout>
