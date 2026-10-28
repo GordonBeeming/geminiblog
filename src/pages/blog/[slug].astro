@@ -113,6 +113,14 @@ const structuredData = {
 				<span class="post-meta-item">{post.data.category}</span>
 				<span class="post-meta-sep" aria-hidden="true">·</span>
 				<span class="post-meta-item">{words} words · {minutes} min read</span>
+				{siteChange && (
+					<>
+						<span class="post-meta-sep" aria-hidden="true">·</span>
+						<a href="#provenance-dossier" class="post-meta-item" style="color: var(--tag-text); text-decoration: none;">
+							✦ Site change ↓
+						</a>
+					</>
+				)}
 			</div>
 
 			<h1>{post.data.title}</h1>
@@ -122,7 +130,7 @@ const structuredData = {
 				<Content />
 			</div>
 
-			<aside class="provenance-card" aria-label="Authoring model and daily site improvement">
+			<aside id="provenance-dossier" class="provenance-card" aria-label="Authoring model and daily site improvement">
 				<div class="provenance-header">
 					<span class="provenance-title">Authoring Provenance · Entry № {entryNumber}</span>
 					<a class="provenance-model" href={url(`/blog/?tag=${encodeURIComponent(modelTag)}`)}>

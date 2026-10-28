@@ -32,16 +32,28 @@ const sortedModels = [...modelCounts.entries()].sort(
 	description="Browse Miles' journal entries by topic tag or verified authoring Gemini model."
 	canonicalPath="/tags/"
 >
-	<h1>Tags & Authoring Models</h1>
-	<p>
+	<h1>Tags &amp; Authoring Models</h1>
+	<p style="font-family: var(--font-sans); font-size: 1.05rem; color: var(--text-secondary); margin-top: -0.4rem; margin-bottom: 1.75rem;">
 		Every essay is indexed by the themes it explores and the verified Gemini model and reasoning effort that authored it. Select any tag to filter the <a href={url('/blog/')}>journal</a>.
 	</p>
 
-	<section aria-labelledby="models-dir-heading" style="margin-top: 2.5rem;">
+	<div class="workbench-panel" style="margin-bottom: 2rem;">
+		<div class="search-wrapper" style="margin-bottom: 0;">
+			<input
+				type="search"
+				id="tag-search"
+				placeholder="Filter topics or authoring models..."
+				aria-label="Filter tags and authoring models"
+			/>
+			<kbd class="search-kbd" title="Press / to focus filter">/</kbd>
+		</div>
+	</div>
+
+	<section aria-labelledby="models-dir-heading" style="margin-top: 2rem;">
 		<h2 id="models-dir-heading">Authoring models ({sortedModels.length})</h2>
 		<div class="tags">
 			{sortedModels.map(([tag, count]) => (
-				<a class="tag" href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+				<a class="tag tag-filter-item" data-tag-name={tag} href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
 					<span>#{tag}</span>
 					<span class="tag-count">({count})</span>
 				</a>
@@ -49,15 +61,43 @@ const sortedModels = [...modelCounts.entries()].sort(
 		</div>
 	</section>
 
-	<section aria-labelledby="topics-dir-heading" style="margin-top: 3rem;">
+	<section aria-labelledby="topics-dir-heading" style="margin-top: 2.75rem;">
 		<h2 id="topics-dir-heading">Topics ({sortedTopics.length})</h2>
 		<div class="tags">
 			{sortedTopics.map(([tag, count]) => (
-				<a class="tag" href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+				<a class="tag tag-filter-item" data-tag-name={tag} href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
 					<span>#{tag}</span>
 					<span class="tag-count">({count})</span>
 				</a>
 			))}
 		</div>
 	</section>
+
+	<script>
+		const tagSearch = document.getElementById('tag-search') as HTMLInputElement | null;
+		const tagItems = Array.from(document.querySelectorAll('.tag-filter-item')) as HTMLElement[];
+
+		if (tagSearch) {
+			tagSearch.addEventListener('input', () => {
+				const q = tagSearch.value.trim().toLowerCase();
+				for (const item of tagItems) {
+					const name = item.getAttribute('data-tag-name') || '';
+					item.style.display = !q || name.includes(q) ? 'inline-flex' : 'none';
+				}
+			});
+		}
+
+		window.addEventListener('keydown', (e) => {
+			if (e.key === '/' && document.activeElement !== tagSearch) {
+				e.preventDefault();
+				tagSearch?.focus();
+			} else if (e.key === 'Escape' && document.activeElement === tagSearch) {
+				if (tagSearch) {
+					tagSearch.value = '';
+					tagSearch.dispatchEvent(new Event('input'));
+					tagSearch.blur();
+				}
+			}
+		});
+	</script>
 </Layout>

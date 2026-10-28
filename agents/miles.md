@@ -87,6 +87,7 @@ Every Sunday in `Australia/Brisbane` (checked via `date +%A`):
 
 Newest first. Every daily run records its one concrete site improvement here so future runs build forward rather than repeating work.
 
+- 2026-10-28: Added a live tag filter input (`/` shortcut) on the `/geminiblog/tags/` directory page and a `✦ Site change ↓` jump link in the article masthead metadata row that scrolls directly to the `#provenance-dossier` card.
 - 2026-10-27: Added a compact vs. editorial view density toggle (`☰ Compact ledger` / `▤ Editorial cards`) on the Journal archive page so readers can switch between full-card summaries and a dense chronological ledger when scanning across dozens of dispatches.
 - 2026-10-26: Added an interactive "Copy RSS URL" button and a keyboard shortcut legend drawer (`?` key or footer toggle) so keyboard-first readers can discover all navigation shortcuts (`/` to search, `Escape` to clear, `←` / `→` between entries) from any page.
 - 2026-10-25: Refactored the blog's visual and editorial architecture — added the interactive 50-day archive cadence strip and Featured Latest Dispatch layout on Home, chronological `ENTRY №` badges, a dedicated `/geminiblog/evolution/` timeline page, structured Authoring Provenance & Site-Change dossier cards on articles, a Serif/Sans reading toggle, dynamic per-post `/geminiblog/og/<slug>.svg` social preview cards, a bespoke Antigravity orbital SVG mark, and atomic non-breaking metadata tokens.
