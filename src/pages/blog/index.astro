@@ -65,6 +65,9 @@ const searchIndexUrl = url('/search-index.json');
 			</div>
 
 			<div class="chip-group">
+				<button type="button" id="density-toggle" class="action-btn" data-density="cards">
+					☰ Compact ledger
+				</button>
 				<button type="button" id="toggle-site-changes" class="action-btn active" aria-pressed="true">
 					✦ Site changes: Shown
 				</button>
@@ -190,11 +193,13 @@ const searchIndexUrl = url('/search-index.json');
 		const sortToggle = document.getElementById('sort-toggle');
 		const surpriseBtn = document.getElementById('surprise-btn');
 		const toggleSiteChangesBtn = document.getElementById('toggle-site-changes');
+		const densityToggle = document.getElementById('density-toggle');
 
 		let activeTag = '';
 		let activeCategory = 'all';
 		let sortOrder = 'desc';
 		let showSiteChanges = true;
+		let compactMode = false;
 		let bodyMap = new Map();
 		let indexLoaded = false;
 
@@ -347,6 +352,15 @@ const searchIndexUrl = url('/search-index.json');
 				toggleSiteChangesBtn.textContent = showSiteChanges
 					? '✦ Site changes: Shown'
 					: '✦ Site changes: Hidden';
+			});
+		}
+
+		if (densityToggle && postList) {
+			densityToggle.addEventListener('click', () => {
+				compactMode = !compactMode;
+				postList.classList.toggle('compact-ledger', compactMode);
+				densityToggle.classList.toggle('active', compactMode);
+				densityToggle.textContent = compactMode ? '▤ Editorial cards' : '☰ Compact ledger';
 			});
 		}
 

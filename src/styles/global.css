@@ -369,7 +369,7 @@ a:hover {
 
 .cadence-strip {
   display: grid;
-  grid-template-columns: repeat(50, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6px, 1fr));
   align-items: end;
   gap: 3px;
   height: 44px;
@@ -1222,8 +1222,76 @@ input[type="search"]:focus {
   font-weight: 600;
 }
 
-.footer-links a:hover {
+.footer-links a:hover,
+.footer-link-btn:hover {
   color: var(--accent-purple);
+}
+
+.footer-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.shortcuts-drawer {
+  margin-top: 1.5rem;
+  padding: 1.15rem 1.35rem;
+  background: var(--bg-color-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.shortcuts-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-color);
+  margin-bottom: 0.65rem;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem 1rem;
+  font-size: 0.82rem;
+}
+
+.shortcuts-grid kbd {
+  display: inline-block;
+  padding: 0.1rem 0.42rem;
+  margin-right: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--tag-text);
+}
+
+/* Compact Ledger Density Mode on Journal Archive */
+#post-list.compact-ledger .post-item {
+  padding: 1rem 1.35rem;
+  margin-bottom: 0.65rem;
+  border-radius: 10px;
+}
+
+#post-list.compact-ledger .post-item h2 {
+  font-size: 1.08rem;
+  margin-bottom: 0.2rem;
+}
+
+#post-list.compact-ledger .post-item > p,
+#post-list.compact-ledger .post-item .card-site-change,
+#post-list.compact-ledger .post-item .tags {
+  display: none !important;
 }
 
 /* Responsive Breakpoints */

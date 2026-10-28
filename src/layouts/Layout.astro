@@ -156,16 +156,72 @@ const isEvolution = pathname.startsWith(url('/evolution'));
 					</div>
 
 					<div class="footer-nav-col">
-						<span class="footer-heading">Syndication &amp; Data</span>
+						<span class="footer-heading">Syndication &amp; Tools</span>
 						<div class="footer-links">
 							<a href={url('/rss.xml')}>RSS 2.0 Feed</a>
+							<button type="button" id="copy-rss-btn" class="footer-link-btn" data-rss={`${SITE.origin}${url('/rss.xml')}`}>
+								Copy RSS URL
+							</button>
 							<a href={url('/sitemap.xml')}>XML Sitemap</a>
 							<a href={url('/search-index.json')}>Full-Text JSON Index</a>
+							<button type="button" id="shortcuts-toggle-btn" class="footer-link-btn">
+								Keyboard Shortcuts (?)
+							</button>
 							<a href="#top" class="back-to-top">↑ Back to top</a>
 						</div>
 					</div>
 				</div>
+				<div id="shortcuts-drawer" class="shortcuts-drawer" hidden aria-label="Keyboard shortcuts">
+					<div class="shortcuts-title">Keyboard Navigation</div>
+					<div class="shortcuts-grid">
+						<div><kbd>/</kbd> Focus search / filter input</div>
+						<div><kbd>Esc</kbd> Clear active search or close panel</div>
+						<div><kbd>←</kbd> Older journal entry (on articles)</div>
+						<div><kbd>→</kbd> Newer journal entry (on articles)</div>
+						<div><kbd>?</kbd> Toggle this shortcut legend</div>
+					</div>
+				</div>
 			</footer>
 		</div>
+		<script>
+			const copyRssBtn = document.getElementById('copy-rss-btn');
+			const shortcutsBtn = document.getElementById('shortcuts-toggle-btn');
+			const shortcutsDrawer = document.getElementById('shortcuts-drawer');
+
+			if (copyRssBtn) {
+				copyRssBtn.addEventListener('click', async () => {
+					const rssUrl = copyRssBtn.getAttribute('data-rss') || '';
+					try {
+						await navigator.clipboard.writeText(rssUrl);
+						const prev = copyRssBtn.textContent;
+						copyRssBtn.textContent = 'Copied RSS URL!';
+						setTimeout(() => {
+							copyRssBtn.textContent = prev;
+						}, 1800);
+					} catch {
+						// Clipboard unavailable
+					}
+				});
+			}
+
+			function toggleShortcuts() {
+				if (!shortcutsDrawer) return;
+				shortcutsDrawer.hidden = !shortcutsDrawer.hidden;
+			}
+
+			if (shortcutsBtn) {
+				shortcutsBtn.addEventListener('click', toggleShortcuts);
+			}
+
+			window.addEventListener('keydown', (e) => {
+				if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+				if (e.key === '?') {
+					e.preventDefault();
+					toggleShortcuts();
+				} else if (e.key === 'Escape' && shortcutsDrawer && !shortcutsDrawer.hidden) {
+					shortcutsDrawer.hidden = true;
+				}
+			});
+		</script>
 	</body>
 </html>

@@ -359,11 +359,11 @@ async function main() {
   const output = [
     `# Daily Context Digest — ${date} (Australia/Brisbane AEST)`,
     '',
-    renderSection(`Antigravity (Miles) — ${agyItems.length} prompt(s)`, agyLines),
+    renderSection(`Antigravity — ${agyItems.length} prompt(s)`, agyLines),
     '',
-    renderSection(`Claude (Cal) — ${sortedClaude.length} project(s)`, claudeLines),
+    renderSection(`Claude — ${sortedClaude.length} project(s)`, claudeLines),
     '',
-    renderSection(`Codex (Rowan) — ${codexItems.length} message(s)`, codexLines),
+    renderSection(`Codex — ${codexItems.length} message(s)`, codexLines),
   ];
 
   console.log(output.join('\n'));
