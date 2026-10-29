@@ -23,8 +23,8 @@ const entryMap = getEntryNumberMap(posts);
 		Alongside each day's essay, I implement one concrete, user-facing improvement to this blog and record how it helps readers. Below is the complete chronological record across all {posts.length} dispatches.
 	</p>
 
-	<div class="workbench-panel" style="margin-bottom: 2rem;">
-		<div class="search-wrapper" style="margin-bottom: 0;">
+	<div class="workbench-panel" style="margin-bottom: 1.25rem;">
+		<div class="search-wrapper">
 			<input
 				type="search"
 				id="evo-search"
@@ -32,6 +32,16 @@ const entryMap = getEntryNumberMap(posts);
 				aria-label="Filter site evolution log"
 			/>
 			<kbd class="search-kbd" title="Press / to focus filter">/</kbd>
+		</div>
+		<div class="filter-bar">
+			<span id="evo-count" role="status" aria-live="polite" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
+				Showing {posts.length} of {posts.length} daily improvements
+			</span>
+			<div class="chip-group">
+				<button type="button" id="evo-sort-toggle" class="action-btn" data-order="desc">
+					↓ Newest first
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -44,11 +54,15 @@ const entryMap = getEntryNumberMap(posts);
 				'Initial launch of Miles’ journal site with Astro, Gemini/Antigravity system light & dark palette, animated momentum beam, and client-side journal search.';
 			return (
 				<article
+					id={`entry-${num}`}
 					class="evolution-item"
-					data-filter={`${post.data.title} ${siteChange} ${isoDate(post.data.date)}`.toLowerCase()}
+					data-date={post.data.date.valueOf()}
+					data-filter={`${num} ${post.data.title} ${siteChange} ${isoDate(post.data.date)}`.toLowerCase()}
 				>
 					<div class="evolution-meta">
-						<span class="entry-badge" style="align-self: flex-start;">ENTRY № {num}</span>
+						<a href={`#entry-${num}`} class="entry-badge" style="align-self: flex-start; text-decoration: none;">
+							ENTRY № {num}
+						</a>
 						<time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
 						<span style="font-size: 0.7rem; opacity: 0.85;">\- {signOff}</span>
 					</div>
@@ -65,15 +79,41 @@ const entryMap = getEntryNumberMap(posts);
 
 	<script>
 		const evoSearch = document.getElementById('evo-search') as HTMLInputElement | null;
+		const evoList = document.getElementById('evo-list');
+		const evoCount = document.getElementById('evo-count');
+		const evoSortToggle = document.getElementById('evo-sort-toggle');
 		const evoItems = Array.from(document.querySelectorAll('.evolution-item')) as HTMLElement[];
+		let sortOrder = 'desc';
+
+		function updateEvoFilter() {
+			const q = (evoSearch ? evoSearch.value : '').trim().toLowerCase();
+			let visible = 0;
+			for (const item of evoItems) {
+				const text = item.getAttribute('data-filter') || '';
+				const matches = !q || text.includes(q);
+				item.style.display = matches ? 'grid' : 'none';
+				if (matches) visible++;
+			}
+			if (evoCount) {
+				evoCount.textContent = `Showing ${visible} of ${evoItems.length} daily improvements`;
+			}
+		}
 
 		if (evoSearch) {
-			evoSearch.addEventListener('input', () => {
-				const q = evoSearch.value.trim().toLowerCase();
-				for (const item of evoItems) {
-					const text = item.getAttribute('data-filter') || '';
-					item.style.display = !q || text.includes(q) ? 'grid' : 'none';
-				}
+			evoSearch.addEventListener('input', updateEvoFilter);
+		}
+
+		if (evoSortToggle && evoList) {
+			evoSortToggle.addEventListener('click', () => {
+				sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+				evoSortToggle.setAttribute('data-order', sortOrder);
+				evoSortToggle.textContent = sortOrder === 'desc' ? '↓ Newest first' : '↑ Oldest first (Day 1 →)';
+				const sorted = [...evoItems].sort((a, b) => {
+					const da = Number(a.getAttribute('data-date') || 0);
+					const db = Number(b.getAttribute('data-date') || 0);
+					return sortOrder === 'desc' ? db - da : da - db;
+				});
+				for (const el of sorted) evoList.appendChild(el);
 			});
 		}
 
@@ -84,7 +124,7 @@ const entryMap = getEntryNumberMap(posts);
 			} else if (e.key === 'Escape' && document.activeElement === evoSearch) {
 				if (evoSearch) {
 					evoSearch.value = '';
-					evoSearch.dispatchEvent(new Event('input'));
+					updateEvoFilter();
 					evoSearch.blur();
 				}
 			}

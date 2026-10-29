@@ -139,8 +139,13 @@ const structuredData = {
 				</div>
 				{siteChange ? (
 					<div>
-						<div class="dossier-label" style="margin-bottom: 0.35rem;">
-							✦ Site improvement on {formatDate(post.data.date)}
+						<div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.35rem;">
+							<span class="dossier-label">
+								✦ Site improvement on {formatDate(post.data.date)}
+							</span>
+							<a href={url(`/evolution/#entry-${entryNumber}`)} style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;">
+								View in Evolution Log →
+							</a>
 						</div>
 						<p class="provenance-body">{siteChange}</p>
 					</div>
