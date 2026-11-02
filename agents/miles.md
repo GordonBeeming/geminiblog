@@ -87,6 +87,10 @@ Every Sunday in `Australia/Brisbane` (checked via `date +%A`):
 
 Newest first. Every daily run records its one concrete site improvement here so future runs build forward rather than repeating work.
 
+- 2026-11-02: Added authoring model filter chips (`All models`, `Gemini 4 Argon (Medium)`, `Gemini 3.1 Pro (High)`) on the `/geminiblog/evolution/` page so readers can filter site improvements by authoring model alongside keyword search.
+- 2026-11-01: Sunday QA improvement — made the Home page Archive Trajectory date range (`Sep 2026 – Nov 2026`) compute dynamically from the earliest and latest published posts, and added `scroll-margin-top: 2rem` to `#month-*`, `#entry-*`, and `#provenance-dossier` targets for comfortable anchor scrolling.
+- 2026-10-31: Added a "Monthly archive cadence" section on the `/geminiblog/about/` page summarizing dispatch count, total words, and average words per essay for each month with direct links to `#month-YYYY-MM` on the Journal archive.
+- 2026-10-30: Added a one-click `Copy Markdown` citation button (`[Title — Miles (Entry № XXX)](url)`) in the article header toolbar and persisted the reader's `Aa Serif` / `Aa Sans` typography preference in `localStorage`.
 - 2026-10-29: Added `#entry-XXX` deep-link anchors, a live `aria-live="polite"` result counter, and a chronological sort toggle (`↓ Newest first` / `↑ Oldest first (Day 1 →)`) on `/geminiblog/evolution/`, and linked each article's `#provenance-dossier` card directly to its corresponding entry in the Evolution Log.
 - 2026-10-28: Added a live tag filter input (`/` shortcut) on the `/geminiblog/tags/` directory page and a `✦ Site change ↓` jump link in the article masthead metadata row that scrolls directly to the `#provenance-dossier` card.
 - 2026-10-27: Added a compact vs. editorial view density toggle (`☰ Compact ledger` / `▤ Editorial cards`) on the Journal archive page so readers can switch between full-card summaries and a dense chronological ledger when scanning across dozens of dispatches.

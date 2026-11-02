@@ -593,6 +593,12 @@ a:hover {
   flex-direction: column;
 }
 
+.post-item[id^="month-"],
+.evolution-item[id^="entry-"],
+#provenance-dossier {
+  scroll-margin-top: 2rem;
+}
+
 .post-item:hover {
   transform: translateY(-3px);
   border-color: var(--accent-purple);

@@ -11,6 +11,13 @@ import {
 
 const posts = await getPublishedPosts();
 const entryMap = getEntryNumberMap(posts);
+
+const models = new Map<string, number>();
+for (const post of posts) {
+	const signOff = extractSignOff(post.body);
+	models.set(signOff, (models.get(signOff) ?? 0) + 1);
+}
+const sortedModels = [...models.entries()].sort((a, b) => b[1] - a[1]);
 ---
 
 <Layout
@@ -34,10 +41,20 @@ const entryMap = getEntryNumberMap(posts);
 			<kbd class="search-kbd" title="Press / to focus filter">/</kbd>
 		</div>
 		<div class="filter-bar">
-			<span id="evo-count" role="status" aria-live="polite" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">
-				Showing {posts.length} of {posts.length} daily improvements
-			</span>
+			<div class="chip-group" role="group" aria-label="Filter improvements by authoring model">
+				<button type="button" class="chip active" data-evo-model="all">
+					All models ({posts.length})
+				</button>
+				{sortedModels.map(([modelName, count]) => (
+					<button type="button" class="chip" data-evo-model={modelName.toLowerCase()}>
+						{modelName} ({count})
+					</button>
+				))}
+			</div>
 			<div class="chip-group">
+				<span id="evo-count" role="status" aria-live="polite" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); margin-right: 0.35rem;">
+					Showing {posts.length} of {posts.length}
+				</span>
 				<button type="button" id="evo-sort-toggle" class="action-btn" data-order="desc">
 					↓ Newest first
 				</button>
@@ -57,6 +74,7 @@ const entryMap = getEntryNumberMap(posts);
 					id={`entry-${num}`}
 					class="evolution-item"
 					data-date={post.data.date.valueOf()}
+					data-model={signOff.toLowerCase()}
 					data-filter={`${num} ${post.data.title} ${siteChange} ${isoDate(post.data.date)}`.toLowerCase()}
 				>
 					<div class="evolution-meta">
@@ -82,25 +100,40 @@ const entryMap = getEntryNumberMap(posts);
 		const evoList = document.getElementById('evo-list');
 		const evoCount = document.getElementById('evo-count');
 		const evoSortToggle = document.getElementById('evo-sort-toggle');
+		const modelChips = Array.from(document.querySelectorAll('[data-evo-model]')) as HTMLElement[];
 		const evoItems = Array.from(document.querySelectorAll('.evolution-item')) as HTMLElement[];
 		let sortOrder = 'desc';
+		let activeModel = 'all';
 
 		function updateEvoFilter() {
 			const q = (evoSearch ? evoSearch.value : '').trim().toLowerCase();
 			let visible = 0;
 			for (const item of evoItems) {
 				const text = item.getAttribute('data-filter') || '';
-				const matches = !q || text.includes(q);
+				const model = item.getAttribute('data-model') || '';
+				const matchesText = !q || text.includes(q);
+				const matchesModel = activeModel === 'all' || model === activeModel;
+				const matches = matchesText && matchesModel;
 				item.style.display = matches ? 'grid' : 'none';
 				if (matches) visible++;
 			}
 			if (evoCount) {
-				evoCount.textContent = `Showing ${visible} of ${evoItems.length} daily improvements`;
+				evoCount.textContent = `Showing ${visible} of ${evoItems.length}`;
 			}
 		}
 
 		if (evoSearch) {
 			evoSearch.addEventListener('input', updateEvoFilter);
+		}
+
+		for (const chip of modelChips) {
+			chip.addEventListener('click', () => {
+				activeModel = chip.getAttribute('data-evo-model') || 'all';
+				for (const c of modelChips) {
+					c.classList.toggle('active', c === chip);
+				}
+				updateEvoFilter();
+			});
 		}
 
 		if (evoSortToggle && evoList) {
@@ -121,12 +154,14 @@ const entryMap = getEntryNumberMap(posts);
 			if (e.key === '/' && document.activeElement !== evoSearch) {
 				e.preventDefault();
 				evoSearch?.focus();
-			} else if (e.key === 'Escape' && document.activeElement === evoSearch) {
-				if (evoSearch) {
-					evoSearch.value = '';
-					updateEvoFilter();
-					evoSearch.blur();
+			} else if (e.key === 'Escape' && (document.activeElement === evoSearch || activeModel !== 'all')) {
+				if (evoSearch) evoSearch.value = '';
+				activeModel = 'all';
+				for (const c of modelChips) {
+					c.classList.toggle('active', c.getAttribute('data-evo-model') === 'all');
 				}
+				updateEvoFilter();
+				evoSearch?.blur();
 			}
 		});
 	</script>

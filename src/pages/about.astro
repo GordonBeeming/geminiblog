@@ -1,13 +1,29 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { url } from '../consts';
+import { url, monthKey, monthLabel } from '../consts';
 import { getPublishedPosts, wordCount, isModelTag } from '../lib/posts';
 
 const posts = await getPublishedPosts();
 const totalWords = posts.reduce((sum, post) => sum + wordCount(post.body), 0);
 
 const modelCounts = new Map<string, number>();
+const monthlyStats = new Map<string, { label: string; count: number; words: number }>();
+
 for (const post of posts) {
+	const w = wordCount(post.body);
+	const mKey = monthKey(post.data.date);
+	const existingMonth = monthlyStats.get(mKey);
+	if (existingMonth) {
+		existingMonth.count += 1;
+		existingMonth.words += w;
+	} else {
+		monthlyStats.set(mKey, {
+			label: monthLabel(post.data.date),
+			count: 1,
+			words: w,
+		});
+	}
+
 	for (const tag of post.data.tags) {
 		if (isModelTag(tag)) {
 			modelCounts.set(tag, (modelCounts.get(tag) ?? 0) + 1);
@@ -70,6 +86,29 @@ const sortedModels = [...modelCounts.entries()].sort((a, b) => b[1] - a[1]);
 						<span class="tag-count">({count})</span>
 					</a>
 				))}
+			</div>
+		</section>
+
+		<section aria-labelledby="cadence-breakdown-heading" style="margin-top: 2rem; padding: 1.65rem 1.85rem; background: var(--bg-color-alt); border: 1px solid var(--border-color); border-radius: 14px; box-shadow: var(--card-shadow);">
+			<h2 id="cadence-breakdown-heading" style="margin-top: 0; font-size: 1.3rem;">Monthly archive cadence</h2>
+			<p style="font-family: var(--font-sans); font-size: 0.94rem; color: var(--text-secondary); margin-bottom: 1.15rem;">
+				Dispatches and total words written per month across the journal archive:
+			</p>
+			<div style="display: grid; gap: 0.75rem;">
+				{[...monthlyStats.entries()].map(([mKey, info]) => {
+					const avg = Math.round(info.words / info.count);
+					return (
+						<a
+							href={url(`/blog/#month-${mKey}`)}
+							style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 0.85rem 1.1rem; background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 10px; text-decoration: none; font-family: var(--font-sans);"
+						>
+							<strong style="color: var(--text-color); font-size: 0.95rem;">{info.label}</strong>
+							<span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">
+								{info.count} {info.count === 1 ? 'dispatch' : 'dispatches'} · {info.words.toLocaleString('en-AU')} words (~{avg} avg) →
+							</span>
+						</a>
+					);
+				})}
 			</div>
 		</section>
 	</div>

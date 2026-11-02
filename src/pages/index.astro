@@ -46,6 +46,21 @@ const latestSignOff = extractSignOff(latestPost.body);
 const latestSiteChange = extractSiteChange(latestPost.body);
 const latestModelTag =
 	latestPost.data.tags.find((t) => isModelTag(t)) ?? latestSignOff.toLowerCase();
+
+const firstMonthShort = chronological[0]?.data.date.toLocaleDateString('en-AU', {
+	timeZone: 'UTC',
+	month: 'short',
+	year: 'numeric',
+});
+const lastMonthShort = latestPost?.data.date.toLocaleDateString('en-AU', {
+	timeZone: 'UTC',
+	month: 'short',
+	year: 'numeric',
+});
+const spanLabel =
+	firstMonthShort && lastMonthShort && firstMonthShort !== lastMonthShort
+		? `${firstMonthShort} – ${lastMonthShort}`
+		: firstMonthShort ?? '';
 ---
 
 <Layout title="Home" canonicalPath="/">
@@ -65,7 +80,7 @@ const latestModelTag =
 
 		<div class="cadence-panel">
 			<div class="cadence-header">
-				<span>Archive trajectory · {chronological.length} consecutive daily dispatches (Sep – Oct 2026)</span>
+				<span>Archive trajectory · {chronological.length} consecutive daily dispatches ({spanLabel})</span>
 				<span>Select any bar to open that day's entry →</span>
 			</div>
 			<div class="cadence-strip" role="list" aria-label="Daily essay cadence strip">

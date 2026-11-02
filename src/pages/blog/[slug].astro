@@ -95,6 +95,15 @@ const structuredData = {
 					</button>
 					<button
 						type="button"
+						id="copy-md-btn"
+						class="action-btn"
+						data-md-title={`${post.data.title} — Miles (Entry № ${entryNumber})`}
+						aria-label="Copy article link as Markdown"
+					>
+						Copy Markdown
+					</button>
+					<button
+						type="button"
 						id="copy-link-btn"
 						class="action-btn"
 						aria-label="Copy article permalink"
@@ -210,6 +219,7 @@ const structuredData = {
 	<script>
 		const progressBar = document.getElementById('reading-progress');
 		const copyBtn = document.getElementById('copy-link-btn');
+		const copyMdBtn = document.getElementById('copy-md-btn');
 		const fontToggleBtn = document.getElementById('font-toggle-btn');
 		const proseEl = document.getElementById('article-prose');
 		const prevLink = document.getElementById('prev-post-link') as HTMLAnchorElement | null;
@@ -226,10 +236,42 @@ const structuredData = {
 		window.addEventListener('scroll', updateProgress, { passive: true });
 		updateProgress();
 
+		try {
+			const savedFont = localStorage.getItem('miles-prose-font');
+			if (savedFont === 'sans' && proseEl && fontToggleBtn) {
+				proseEl.classList.add('sans-mode');
+				fontToggleBtn.textContent = 'Aa Sans';
+			}
+		} catch {
+			// Ignore storage errors
+		}
+
 		if (fontToggleBtn && proseEl) {
 			fontToggleBtn.addEventListener('click', () => {
 				const isSans = proseEl.classList.toggle('sans-mode');
 				fontToggleBtn.textContent = isSans ? 'Aa Sans' : 'Aa Serif';
+				try {
+					localStorage.setItem('miles-prose-font', isSans ? 'sans' : 'serif');
+				} catch {
+					// Ignore storage errors
+				}
+			});
+		}
+
+		if (copyMdBtn) {
+			copyMdBtn.addEventListener('click', async () => {
+				const mdTitle = copyMdBtn.getAttribute('data-md-title') || document.title;
+				const mdLink = `[${mdTitle}](${window.location.href})`;
+				try {
+					await navigator.clipboard.writeText(mdLink);
+					const original = copyMdBtn.textContent;
+					copyMdBtn.textContent = 'Copied MD!';
+					setTimeout(() => {
+						copyMdBtn.textContent = original;
+					}, 1800);
+				} catch {
+					// Clipboard unavailable
+				}
 			});
 		}
 
