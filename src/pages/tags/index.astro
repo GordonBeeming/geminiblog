@@ -25,6 +25,7 @@ const sortedTopics = [...topicCounts.entries()].sort(
 const sortedModels = [...modelCounts.entries()].sort(
 	(a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
 );
+const totalTags = sortedTopics.length + sortedModels.length;
 ---
 
 <Layout
@@ -38,7 +39,7 @@ const sortedModels = [...modelCounts.entries()].sort(
 	</p>
 
 	<div class="workbench-panel" style="margin-bottom: 2rem;">
-		<div class="search-wrapper" style="margin-bottom: 0;">
+		<div class="search-wrapper">
 			<input
 				type="search"
 				id="tag-search"
@@ -47,13 +48,28 @@ const sortedModels = [...modelCounts.entries()].sort(
 			/>
 			<kbd class="search-kbd" title="Press / to focus filter">/</kbd>
 		</div>
+		<div class="filter-bar">
+			<span id="tag-results-count" role="status" aria-live="polite" style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">
+				Showing {totalTags} of {totalTags} tags
+			</span>
+			<div class="chip-group">
+				<button type="button" id="topic-sort-toggle" class="action-btn" data-sort="count">
+					↓ Sorted by frequency
+				</button>
+			</div>
+		</div>
 	</div>
 
 	<section aria-labelledby="models-dir-heading" style="margin-top: 2rem;">
 		<h2 id="models-dir-heading">Authoring models ({sortedModels.length})</h2>
 		<div class="tags">
 			{sortedModels.map(([tag, count]) => (
-				<a class="tag tag-filter-item" data-tag-name={tag} href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+				<a
+					class="tag tag-filter-item"
+					data-tag-name={tag}
+					data-tag-count={count}
+					href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}
+				>
 					<span>#{tag}</span>
 					<span class="tag-count">({count})</span>
 				</a>
@@ -63,9 +79,14 @@ const sortedModels = [...modelCounts.entries()].sort(
 
 	<section aria-labelledby="topics-dir-heading" style="margin-top: 2.75rem;">
 		<h2 id="topics-dir-heading">Topics ({sortedTopics.length})</h2>
-		<div class="tags">
+		<div id="topics-container" class="tags">
 			{sortedTopics.map(([tag, count]) => (
-				<a class="tag tag-filter-item" data-tag-name={tag} href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}>
+				<a
+					class="tag tag-filter-item topic-item"
+					data-tag-name={tag}
+					data-tag-count={count}
+					href={url(`/blog/?tag=${encodeURIComponent(tag)}`)}
+				>
 					<span>#{tag}</span>
 					<span class="tag-count">({count})</span>
 				</a>
@@ -75,15 +96,48 @@ const sortedModels = [...modelCounts.entries()].sort(
 
 	<script>
 		const tagSearch = document.getElementById('tag-search') as HTMLInputElement | null;
+		const tagResultsCount = document.getElementById('tag-results-count');
+		const topicSortToggle = document.getElementById('topic-sort-toggle');
+		const topicsContainer = document.getElementById('topics-container');
 		const tagItems = Array.from(document.querySelectorAll('.tag-filter-item')) as HTMLElement[];
+		const topicItems = Array.from(document.querySelectorAll('.topic-item')) as HTMLElement[];
+		let sortMode = 'count';
+
+		function updateTagFilter() {
+			const q = (tagSearch ? tagSearch.value : '').trim().toLowerCase();
+			let visible = 0;
+			for (const item of tagItems) {
+				const name = item.getAttribute('data-tag-name') || '';
+				const matches = !q || name.includes(q);
+				item.style.display = matches ? 'inline-flex' : 'none';
+				if (matches) visible++;
+			}
+			if (tagResultsCount) {
+				tagResultsCount.textContent = `Showing ${visible} of ${tagItems.length} tags`;
+			}
+		}
 
 		if (tagSearch) {
-			tagSearch.addEventListener('input', () => {
-				const q = tagSearch.value.trim().toLowerCase();
-				for (const item of tagItems) {
-					const name = item.getAttribute('data-tag-name') || '';
-					item.style.display = !q || name.includes(q) ? 'inline-flex' : 'none';
-				}
+			tagSearch.addEventListener('input', updateTagFilter);
+		}
+
+		if (topicSortToggle && topicsContainer) {
+			topicSortToggle.addEventListener('click', () => {
+				sortMode = sortMode === 'count' ? 'alpha' : 'count';
+				topicSortToggle.setAttribute('data-sort', sortMode);
+				topicSortToggle.textContent =
+					sortMode === 'count' ? '↓ Sorted by frequency' : '↑ Sorted A–Z';
+				const sorted = [...topicItems].sort((a, b) => {
+					const nameA = a.getAttribute('data-tag-name') || '';
+					const nameB = b.getAttribute('data-tag-name') || '';
+					const countA = Number(a.getAttribute('data-tag-count') || 0);
+					const countB = Number(b.getAttribute('data-tag-count') || 0);
+					if (sortMode === 'alpha') {
+						return nameA.localeCompare(nameB);
+					}
+					return countB - countA || nameA.localeCompare(nameB);
+				});
+				for (const el of sorted) topicsContainer.appendChild(el);
 			});
 		}
 
@@ -94,7 +148,7 @@ const sortedModels = [...modelCounts.entries()].sort(
 			} else if (e.key === 'Escape' && document.activeElement === tagSearch) {
 				if (tagSearch) {
 					tagSearch.value = '';
-					tagSearch.dispatchEvent(new Event('input'));
+					updateTagFilter();
 					tagSearch.blur();
 				}
 			}

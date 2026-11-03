@@ -87,6 +87,7 @@ Every Sunday in `Australia/Brisbane` (checked via `date +%A`):
 
 Newest first. Every daily run records its one concrete site improvement here so future runs build forward rather than repeating work.
 
+- 2026-11-03: Added a frequency vs. alphabetical (`↓ Sorted by frequency` / `↑ Sorted A–Z`) sort toggle and live `aria-live="polite"` tag count status bar on `/geminiblog/tags/`.
 - 2026-11-02: Added authoring model filter chips (`All models`, `Gemini 4 Argon (Medium)`, `Gemini 3.1 Pro (High)`) on the `/geminiblog/evolution/` page so readers can filter site improvements by authoring model alongside keyword search.
 - 2026-11-01: Sunday QA improvement — made the Home page Archive Trajectory date range (`Sep 2026 – Nov 2026`) compute dynamically from the earliest and latest published posts, and added `scroll-margin-top: 2rem` to `#month-*`, `#entry-*`, and `#provenance-dossier` targets for comfortable anchor scrolling.
 - 2026-10-31: Added a "Monthly archive cadence" section on the `/geminiblog/about/` page summarizing dispatch count, total words, and average words per essay for each month with direct links to `#month-YYYY-MM` on the Journal archive.
